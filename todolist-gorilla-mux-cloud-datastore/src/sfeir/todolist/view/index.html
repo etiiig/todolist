@@ -1,0 +1,90 @@
+<html>
+<head>
+<title>Todolist</title>
+<script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+
+<script type="text/javascript">
+var apiUrl = '/todolist/';
+
+$(document).ready(function() {
+    $.ajax({
+        url: apiUrl + 'tasks',
+        type: 'GET',
+        success: function(data) {
+        	if (data) {
+        		$.each(data, function(index, value) {
+					$('#tasks').append('<div class="task"><a class="delete" data-id="' + value.Id + '">x</a> ' + value.Content + '</div>');
+        		});
+        	}
+        	else {
+        		//alert(data);
+        	}
+        }
+    });
+    
+    $('#addForm').on('submit', function(e) {
+        e.preventDefault();
+        var content = $('#addForm input[type="text"]').val();
+        $.ajax({
+            url: apiUrl + 'tasks',
+            type: 'POST',
+            data: JSON.stringify({Content: content}),
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function(data) {
+            	if (data.Status) {
+            		$('#tasks').append('<div class="task"><a class="delete" data-id="' + data.Status + '">x</a> ' + content + '</div>');
+            		$('#addForm input[type="text"]').val('');
+            	}
+            	else {
+            		alert(data);
+            	}
+            }
+        });
+    });
+    
+    $('body').on('click', '.delete', function(e) {
+        e.preventDefault();
+        var self = $(this);
+        var id = self.attr('data-id');
+        $.ajax({
+            url: apiUrl + 'tasks/' + id,
+            type: 'DELETE',
+            success: function(data) {
+            	if (data.Status == 'ok') {
+            		self.parent('.task').remove();
+            	}
+            	else {
+            		alert(data);
+            	}
+            }
+        });
+    });
+});
+</script>
+
+<style type="text/css">
+#addForm {
+	margin-bottom:20px;
+}
+.delete {
+	cursor:pointer;
+	float:right;
+}
+.task {
+	width:400px;
+	border:1px solid black;
+	padding:3px;
+	margin:5px;
+}
+</style>
+</head>
+<body>
+	<form id="addForm" action="#" method="post">
+		<input type="text" name="content" />
+		<input type="submit" value="Add" />
+	</form>
+	
+	<div id="tasks"></div>
+</body>
+</html>
